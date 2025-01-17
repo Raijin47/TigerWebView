@@ -1,68 +1,39 @@
 using UnityEngine;
+using UnityEngine.AI;
 
-public class EnemyBase : CharacterBase
+public class EnemyBase : MonoBehaviour
 {
-    [SerializeField] private Transform[] _points;
+    private NavMeshAgent _agent;
+    private Vector3 _startPosition;
 
-    private Transform _target;
-    private int _currentPath;
 
-    private bool _isPatrol;
-    private const float MoveAmount = 1;
-    private const float IntervalPatrol = 2;
-    private float _currentTime;
-
-    protected override void Init()
+    private void Start()
     {
-        _target = _points[0];
-
-        Game.Action.OnEnter += () =>
-        {
-            _target = _points[0];
-            _currentPath = 0;
-            OnPause(false);
-        };
-
-        Game.Action.OnExit += () =>
-        {
-            Restart();
-        };
+        _startPosition = transform.position;
+        _agent = GetComponent<NavMeshAgent>();
+        Game.Action.OnEnter += Action_OnEnter;
+        GetComponent<EnemySearchSupport>().OnPlayerSearch += Action_OnPlayerSearch;
     }
 
-    protected override void GetInput()
+    private void Action_OnEnter()
     {
-        if (Vector3.Distance(transform.position, _points[_currentPath].position) <= .5f)
-        {
-            _currentPath++;
-            if (_currentPath >= _points.Length)
-                _currentPath = 0;
+        _agent.destination = GetTarget();
 
-            _isPatrol = false;
-            _currentTime = IntervalPatrol;
-            _target = _points[_currentPath];
-        }
-
-        if(!_isPatrol)
-        {
-            _currentTime -= Time.deltaTime;
-
-            if (_currentTime <= 0) _isPatrol = true; 
-        }
+        _agent.SetDestination(GetTarget());
     }
 
-    protected override void Movement()
+    private void Update()
     {
-        if (_isPatrol)
-        {
-            _movement.MovementDirection = transform.TransformDirection(Vector3.forward);
-            _movement.Move(MoveAmount);
 
-            if (_target == null) return;
+    }
 
-            Vector3 direction = (_target.position - transform.position).normalized;
-            _movement.Rotate(direction);
-        }
-
-        _animator.MovementAnimations(_isPatrol ? MoveAmount : 0);
+    private void Action_OnPlayerSearch()
+    {
+        Debug.Log("SearchPlayer");
+    }
+    
+    private Vector3 GetTarget()
+    {
+        return _startPosition + new Vector3(Random.Range(-10, 10), 0, Random.Range(-10, 10));
     }
 }

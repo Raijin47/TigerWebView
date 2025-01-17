@@ -8,7 +8,6 @@ public class CharacterMovement
     [SerializeField, Range(1, 10)] private float _rotateSpeed;
 
     private Rigidbody _rigidbody;
-    private CharacterController _characterController;
 
     public Vector3 MovementDirection { private get; set; }
 
